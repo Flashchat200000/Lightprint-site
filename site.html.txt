@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightprint Engine - Аутентификация и Передача Данных Светом</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение шрифта Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Кастомные стили */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a; /* Очень темный фон */
+            color: #e0e0e0;
+        }
+
+        /* Стиль для "глассморфизма" */
+        .glass-effect {
+            background: rgba(10, 10, 10, 0.4); /* Полупрозрачный темный фон */
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            border-radius: 1rem; /* 16px */
+            border: 1px solid rgba(212, 175, 55, 0.2); /* Тонкая золотая рамка */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s ease;
+        }
+
+        .glass-effect-hover:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-5px);
+        }
+
+        /* * ОБНОВЛЕННЫЙ СТИЛЬ: Градиентный золотой текст 
+         * Переход от полупрозрачного золотого снизу к яркому золотому сверху.
+        */
+        .gold-gradient-text {
+            background: linear-gradient(to top, rgba(212, 175, 55, 0.4), #ffd700 40%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        /* Анимированный фон с "частицами света" */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 70%);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+            animation: moveLight 20s infinite alternate ease-in-out;
+            filter: blur(50px);
+        }
+
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            right: -150px;
+            animation: moveLight2 25s infinite alternate ease-in-out;
+            animation-delay: -5s;
+            filter: blur(60px);
+        }
+
+        @keyframes moveLight {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(300px, 200px) rotate(180deg); }
+        }
+
+        @keyframes moveLight2 {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(-250px, -150px) rotate(-180deg); }
+        }
+
+        /* Кастомный стиль для кнопки */
+        .btn-gold {
+            background: linear-gradient(90deg, #daa520, #ffd700);
+            color: #1a1a1a; /* Темный текст на кнопке */
+            border: 1px solid #ffd700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .btn-gold:hover {
+            background: linear-gradient(90deg, #ffd700, #daa520);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Стили для технологических "таблеток" */
+        .tech-pill {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #ffd700;
+            padding: 4px 12px;
+            border-radius: 9999px; /* full pill */
+            font-size: 0.875rem; /* 14px */
+            margin: 4px;
+            transition: all 0.2s ease;
+        }
+        .tech-pill:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Анимированный фон -->
+    <div class="animated-bg"></div>
+
+    <!-- Контейнер для всего контента -->
+    <div class="relative z-10 min-h-screen px-4 py-8 md:px-8 lg:px-12">
+        
+        <!-- Шапка сайта -->
+        <header class="container mx-auto">
+            <nav class="flex items-center justify-between p-4 glass-effect">
+                <div class="text-2xl font-bold tracking-wider gold-gradient-text">
+                    Lightprint Engine
+                </div>
+                <div class="hidden space-x-6 md:flex">
+                    <a href="#hero" class="text-gray-300 hover:text-yellow-400 transition-colors">Главная</a>
+                    <a href="#features" class="text-gray-300 hover:text-yellow-400 transition-colors">Функции</a>
+                    <a href="#modes" class="text-gray-300 hover:text-yellow-400 transition-colors">Режимы</a>
+                    <a href="#stack" class="text-gray-300 hover:text-yellow-400 transition-colors">Технологии</a>
+                </div>
+                <div class="md:hidden">
+                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Главный экран (Hero) -->
+        <main class="container mx-auto">
+            <section id="hero" class="flex flex-col items-center justify-center text-center py-24 md:py-32">
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6">
+                    <span class="gold-gradient-text">Lightprint Engine</span>
+                </h1>
+                <p class="text-lg md:text-xl text-gray-300 max-w-3xl mb-10">
+                    Веб-приложение для передачи и приёма данных с использованием видимого света (VLC). Используйте камеру и экран вашего устройства для аутентификации и обмена информацией.
+                </p>
+                <a href="#mockup" class="btn-gold font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
+                    Попробовать Демо
+                </a>
+            </section>
+
+            <!-- Основные функции (Receiver/Transmitter) -->
+            <section id="features" class="py-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
+                    Ключевой <span class="gold-gradient-text">Функционал</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <!-- Карточка 1: Receiver -->
+                    <div class="glass-effect glass-effect-hover p-8 flex flex-col items-center text-center">
+                        <div class="p-4 bg-gray-900 rounded-full mb-6 border border-yellow-500/30">
+                            <!-- Иконка Камеры -->
+                            <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.53 4H13.5a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 gold-gradient-text">Приёмник (Receiver)</h3>
+                        <p class="text-gray-300">
+                            Использует камеру устройства (`getUserMedia`) для захвата световых сигналов. Анализирует мерцание, стабильный свет и QR-коды с цветовой модуляцией для приёма данных.
+                        </p>
+                    </div>
+
+                    <!-- Карточка 2: Transmitter -->
+                    <div class="glass-effect glass-effect-hover p-8 flex flex-col items-center text-center">
+                        <div class="p-4 bg-gray-900 rounded-full mb-6 border border-yellow-500/30">
+                            <!-- Иконка Экрана/Света -->
+                            <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1.75-1L5.25 17l1-1.75L4.5 14l1.75-1L4.5 11l1.75-1L4.5 8l1.75-1L4.5 5l1.75-1L4.5 2l1.75 1L8 1.25l1.75 1.75L11.5 1.25l1.75 1.75L15 1.25l1.75 1.75L18.5 1.25l1.75 1.75L22 4.5l-1 1.75-1.75 1L21 8.5l-1.75 1-1.75 1.75L19.5 14l-1.75 1.75L19.5 17l-1.75 1.75L16 20.75l-1.75-1.75L12.5 20.75l-1.75-1.75L9 20l.75-3z"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 gold-gradient-text">Передатчик (Transmitter)</h3>
+                        <p class="text-gray-300">
+                            Генерирует световые сигналы для передачи текста или файлов. Использует экран для мигания (Manchester) или отображения серии цветных QR-кодов.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 
+                *** СЕКЦИЯ ***
+            -->
+            <section id="mockup" class="py-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">
+                    Интерфейс <span class="gold-gradient-text">Приложения</span>
+                </h2>
+
+                <!-- .app-card - воссоздаем app-card из вашего CSS -->
+                <div class="max-w-md mx-auto bg-neutral-900 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
+                    
+                    <!-- .main-display - Экран камеры/передатчика -->
+                    <div classpro="main-display relative aspect-[4/3] bg-black flex items-center justify-center text-gray-600">
+                        <!-- Плейсхолдер камеры -->
+                        <svg class="w-16 h-16 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.53 4H13.5a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        
+                        <!-- 
+                        
+                          Желтая пунктирная рамка (roi-overlay)
+                        -->
+
+                        <!-- #transmitter (скрыт по умолчанию) - плейсхолдер для QR -->
+                        <!-- <div id="transmitter" class="absolute inset-0 bg-black p-4 flex items-center justify-center hidden">
+                            <img src="https://placehold.co/300x300/ffffff/000000?text=QR+CODE" alt="QR Code" class="w-full h-full object-contain" style="image-rendering: pixelated;">
+                        </div> -->
+                    </div>
+
+                    <!-- .status-bar - Статус-бар -->
+                    <div class="status-bar px-4 py-3 border-t border-b border-gray-700 bg-neutral-800/50">
+                        <!-- #status - используем info-color из вашего CSS (желтый) -->
+                        <div id="status" class="text-center text-sm font-semibold text-yellow-400" data-type="info">
+                            STABILIZING...
+                        </div>
+                        <!-- .progress-bar - используем accent-color (синий) -->
+                        <div class="progress-bar w-full bg-gray-700 rounded-full h-1.5 mt-2">
+                            <div id="progressFill" class="bg-blue-600 h-1.5 rounded-full" style="width: 45%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- .controls - Панель управления -->
+                    <div class="controls p-4 flex flex-col gap-4">
+                        <!-- Роль -->
+                        <div class="control-group flex items-center gap-3">
+                            <label class="font-medium text-gray-400 w-20">Роль:</label>
+                            <select class="flex-1 bg-neutral-950 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                                <option>Receiver</option>
+                                <option>Transmitter</option>
+                            </select>
+                        </div>
+                        <!-- Режим -->
+                        <div class="control-group flex items-center gap-3">
+                            <label class="font-medium text-gray-400 w-20">Режим:</label>
+                            <select class="flex-1 bg-neutral-950 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                                <option>Flicker (Auth)</option>
+                                <option>Stable (ML)</option>
+                                <option>Data (Manchester)</option>
+                                <option>Data (QR)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- .button-group - Кнопки -->
+                        <div class="button-group grid grid-cols-2 gap-3 pt-2">
+                            <!-- .btn-secondary -->
+                            <button class="btn btn-secondary bg-gray-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-gray-500 transition-colors">
+                                Stop
+                            </button>
+                            <!-- .btn (primary) - используем accent-color (синий) -->
+                            <button class="btn bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                Start Receiver
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- #result-display - Плейсхолдер для результатов -->
+                    <div id="result-display" class="p-4 border-t border-gray-700">
+                        <p class="text-sm text-center text-gray-500">Ожидание результата...</p>
+                        <!-- Пример успешного результата (скрыт) -->
+                        <!-- <a href="#" class="block w-full text-center py-2.5 px-4 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors">
+                            Download result.zip
+                        </a> -->
+                    </div>
+
+                </div>
+            </section>
+            <!-- *** КОНЕЦ СЕКЦИИ *** -->
+
+
+            <!-- Режимы Работы (Modes) -->
+            <section id="modes" class="py-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
+                    Поддерживаемые <span class="gold-gradient-text">Режимы</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <div class="glass-effect glass-effect-hover p-6 text-center">
+                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Flicker (Мерцание)</h3>
+                        <p class="text-gray-300 text-sm">Аутентификация по шаблону мерцания. Сравнение сигналов через DTW и кросс-корреляцию.</p>
+                    </div>
+
+                    <div class="glass-effect glass-effect-hover p-6 text-center">
+                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Stable (Стабильный)</h3>
+                        <p class="text-gray-300 text-sm">Распознавание объектов (стабильный источник света) с использованием MobileNet (TF.js) для извлечения признаков.</p>
+</div>
+
+                    <div class="glass-effect glass-effect-hover p-6 text-center">
+                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Data (Manchester)</h3>
+                        <p class="text-gray-300 text-sm">Передача данных с помощью Manchester-кодирования. Использует CRC8 для проверки целостности данных.</p>
+                    </div>
+
+                    <div class="glass-effect glass-effect-hover p-6 text-center">
+                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Data QR (Цветной QR)</h3>
+                        <p class="text-gray-300 text-sm">Передача файлов/текста через QR с цветовой модуляцией (8 цветов, 3 бита на зону) и AES-шифрованием.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Технологический Стек -->
+            <section id="stack" class="py-20 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-10">
+                    Технологический <span class="gold-gradient-text">Стек</span>
+                </h2>
+                <div class="max-w-4xl mx-auto">
+                    <span class="tech-pill">TensorFlow.js</span>
+                    <span class="tech-pill">MobileNet</span>
+                    <span class="tech-pill">Web Workers</span>
+                    <span class="tech-pill">CryptoJS (AES)</span>
+                    <span class="tech-pill">jsQR</span>
+                    <span class="tech-pill">qrcode</span>
+                    <span class="tech-pill">MediaDevices API</span>
+                    <span class="tech-pill">Canvas API</span>
+                    <span class="tech-pill">DTW</span>
+                    <span classn class="tech-pill">Manchester Coding</span>
+                    <span class="tech-pill">CRC8</span>
+                    <span class="tech-pill">IIFE</span>
+                </div>
+            </section>
+        </main>
+
+        <!-- Подвал -->
+        <footer class="container mx-auto text-center py-8 mt-16 border-t border-gray-800/50">
+            <p class="text-gray-500">&copy; 2025 Lightprint. Все права защищены.</p>
+        </footer>
+
+    </div>
+</body>
+</html>
