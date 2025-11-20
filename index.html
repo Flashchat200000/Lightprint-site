@@ -1,348 +1,484 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lightprint Engine - Аутентификация и Передача Данных Светом</title>
-    <!-- Подключение Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключение шрифта Inter -->
+    <title>LIGHTPRINT | GOLDEN KERNEL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;800&family=Syncopate:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
     
     <style>
-        /* Кастомные стили */
+        :root {
+            --bg: #030303;
+            --surface: #0a0a0a;
+            --glass: rgba(20, 20, 20, 0.6);
+            --glass-border: rgba(212, 175, 55, 0.15);
+            
+            /* LUXURY GOLD PALETTE */
+            --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+            --gold-flat: #D4AF37;
+            --gold-dim: #6b5828;
+            --text-muted: #666;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0a0a0a; /* Очень темный фон */
+            background-color: var(--bg);
             color: #e0e0e0;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Стиль для "глассморфизма" */
-        .glass-effect {
-            background: rgba(10, 10, 10, 0.4); /* Полупрозрачный темный фон */
-            backdrop-filter: blur(15px) saturate(180%);
-            -webkit-backdrop-filter: blur(15px) saturate(180%);
-            border-radius: 1rem; /* 16px */
-            border: 1px solid rgba(212, 175, 55, 0.2); /* Тонкая золотая рамка */
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: all 0.3s ease;
-        }
-
-        .glass-effect-hover:hover {
-            border-color: rgba(212, 175, 55, 0.4);
-            transform: translateY(-5px);
-        }
-
-        /* * ОБНОВЛЕННЫЙ СТИЛЬ: Градиентный золотой текст 
-         * Переход от полупрозрачного золотого снизу к яркому золотому сверху.
-        */
-        .gold-gradient-text {
-            background: linear-gradient(to top, rgba(212, 175, 55, 0.4), #ffd700 40%);
+        /* --- GLOBAL UTILS --- */
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .uc { text-transform: uppercase; }
+        
+        .gold-text {
+            background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shine 6s linear infinite;
         }
 
-        /* Анимированный фон с "частицами света" */
-        .animated-bg {
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 5vw;
+        }
+
+        /* --- BACKGROUND FX --- */
+        .noise {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23n)" opacity="0.05"/%3E%3C/svg%3E');
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60vw; height: 60vw;
+            background: radial-gradient(circle, rgba(191, 149, 63, 0.08), transparent 70%);
             z-index: -1;
-            overflow: hidden;
+            pointer-events: none;
         }
 
-        .animated-bg::before {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 70%);
-            border-radius: 50%;
-            top: -100px;
-            left: -100px;
-            animation: moveLight 20s infinite alternate ease-in-out;
-            filter: blur(50px);
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 5vw;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
         }
 
-        .animated-bg::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%);
-            border-radius: 50%;
-            bottom: -150px;
-            right: -150px;
-            animation: moveLight2 25s infinite alternate ease-in-out;
-            animation-delay: -5s;
-            filter: blur(60px);
+        .brand {
+            font-family: 'Syncopate', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
         }
 
-        @keyframes moveLight {
-            from { transform: translate(0, 0) rotate(0deg); }
-            to { transform: translate(300px, 200px) rotate(180deg); }
+        /* --- HERO SECTION --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            padding-top: 80px;
         }
 
-        @keyframes moveLight2 {
-            from { transform: translate(0, 0) rotate(0deg); }
-            to { transform: translate(-250px, -150px) rotate(-180deg); }
+        h1 {
+            font-size: clamp(4rem, 12vw, 10rem);
+            line-height: 0.85;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 40px;
         }
 
-        /* Кастомный стиль для кнопки */
-        .btn-gold {
-            background: linear-gradient(90deg, #daa520, #ffd700);
-            color: #1a1a1a; /* Темный текст на кнопке */
-            border: 1px solid #ffd700;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+        .hero-meta {
+            display: flex;
+            gap: 40px;
+            border-left: 1px solid var(--gold-dim);
+            padding-left: 30px;
+            margin-top: 40px;
         }
 
-        .btn-gold:hover {
-            background: linear-gradient(90deg, #ffd700, #daa520);
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
-            transform: translateY(-2px);
+        .meta-item span { display: block; }
+        .meta-label { font-size: 0.7rem; color: var(--gold-dim); letter-spacing: 2px; margin-bottom: 5px; }
+        .meta-val { font-size: 1.2rem; color: #fff; font-weight: 200; }
+
+        /* --- SECTION HEADERS --- */
+        .section-header {
+            padding: 150px 0 80px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
         
-        /* Стили для технологических "таблеток" */
-        .tech-pill {
-            display: inline-block;
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            color: #ffd700;
-            padding: 4px 12px;
-            border-radius: 9999px; /* full pill */
-            font-size: 0.875rem; /* 14px */
-            margin: 4px;
-            transition: all 0.2s ease;
+        .sec-title {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 3rem;
+            color: var(--gold-flat);
+            margin-bottom: 20px;
+            text-transform: uppercase;
         }
-        .tech-pill:hover {
-            background: rgba(212, 175, 55, 0.2);
-            transform: scale(1.05);
+
+        .sec-desc {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* --- BENTO GRID (ARCHITECTURE) --- */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: minmax(300px, auto);
+            gap: 20px;
+            margin-bottom: 100px;
+        }
+
+        .tile {
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        
+        .tile:hover { border-color: var(--gold-flat); }
+
+        .tile-large { grid-column: span 8; }
+        .tile-small { grid-column: span 4; }
+        .tile-tall { grid-column: span 4; grid-row: span 2; }
+
+        .tile-num {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 4rem;
+            position: absolute;
+            top: 20px; right: 20px;
+            color: rgba(255,255,255,0.03);
+            font-weight: 700;
+        }
+
+        .tile h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .tile p {
+            color: #888;
+            font-weight: 300;
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        /* --- CODE BLOCK STYLING --- */
+        .code-terminal {
+            background: #050505;
+            border: 1px solid var(--gold-dim);
+            padding: 30px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #a8a8a8;
+            position: relative;
+            margin-top: 20px;
+        }
+        
+        .code-terminal::before {
+            content: 'kernel.js';
+            position: absolute;
+            top: -10px; left: 20px;
+            background: var(--gold-flat);
+            color: #000;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .k { color: var(--gold-flat); } /* Keyword */
+        .s { color: #fff; } /* String */
+        .c { color: #555; font-style: italic; } /* Comment */
+
+        /* --- MARQUEE --- */
+        .marquee-wrap {
+            width: 100%;
+            overflow: hidden;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 20px 0;
+            margin: 100px 0;
+            background: rgba(212, 175, 55, 0.02);
+        }
+        
+        .marquee {
+            display: flex;
+            white-space: nowrap;
+            animation: scroll 40s linear infinite;
+        }
+
+        .marquee span {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 2rem;
+            color: var(--gold-dim);
+            margin: 0 40px;
+            font-weight: 700;
+            opacity: 0.5;
+        }
+
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* --- COMPARISON TABLE --- */
+        .comparison {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 50px;
+        }
+        .comparison th {
+            text-align: left;
+            padding: 20px;
+            border-bottom: 1px solid var(--gold-flat);
+            color: var(--gold-flat);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 0.9rem;
+        }
+        .comparison td {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #aaa;
+            font-weight: 300;
+        }
+        .comparison tr:hover td { background: rgba(212,175,55,0.02); color: #fff; }
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 100px 0;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 20px 50px;
+            border: 1px solid var(--gold-flat);
+            color: var(--gold-flat);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            margin-top: 50px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: var(--gold-flat);
+            color: #000;
+        }
+
+        @media (max-width: 1024px) {
+            .tile-large, .tile-small, .tile-tall { grid-column: span 12; }
+            h1 { font-size: 12vw; }
         }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body>
 
-    <!-- Анимированный фон -->
-    <div class="animated-bg"></div>
+    <div class="noise"></div>
+    <div class="ambient-glow"></div>
 
-    <!-- Контейнер для всего контента -->
-    <div class="relative z-10 min-h-screen px-4 py-8 md:px-8 lg:px-12">
+    <nav>
+        <div class="brand gold-text">LIGHTPRINT</div>
+        <div class="mono" style="font-size: 0.8rem; color: var(--gold-dim);">V12.5-ENT</div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="container">
+        <section class="hero">
+            <h1>VISIBLE<br><span class="gold-text">LIGHT</span><br>DATA.</h1>
+            
+            <p style="max-width: 600px; color: #999; font-size: 1.2rem; line-height: 1.6;">
+                The first browser-based protocol that replaces radio waves with photons. 
+                Air-gapped authentication powered by WebGPU and Neural Engines.
+            </p>
+
+            <div class="hero-meta">
+                <div class="meta-item">
+                    <span class="meta-label uc">Bit Time</span>
+                    <span class="meta-val mono">50ms</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label uc">Security</span>
+                    <span class="meta-val mono">Air-Gapped</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label uc">Core</span>
+                    <span class="meta-val mono">TensorFlow</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MARQUEE -->
+    <div class="marquee-wrap">
+        <div class="marquee">
+            <span>NO BLUETOOTH</span><span>///</span>
+            <span>NO NFC</span><span>///</span>
+            <span>WEB_GPU ACCELERATED</span><span>///</span>
+            <span>MANCHESTER ENCODING</span><span>///</span>
+            <span>NO BLUETOOTH</span><span>///</span>
+            <span>NO NFC</span><span>///</span>
+            <span>WEB_GPU ACCELERATED</span><span>///</span>
+            <span>MANCHESTER ENCODING</span><span>///</span>
+        </div>
+    </div>
+
+    <div class="container">
         
-        <!-- Шапка сайта -->
-        <header class="container mx-auto">
-            <nav class="flex items-center justify-between p-4 glass-effect">
-                <div class="text-2xl font-bold tracking-wider gold-gradient-text">
-                    Lightprint Engine
-                </div>
-                <div class="hidden space-x-6 md:flex">
-                    <a href="#hero" class="text-gray-300 hover:text-yellow-400 transition-colors">Главная</a>
-                    <a href="#features" class="text-gray-300 hover:text-yellow-400 transition-colors">Функции</a>
-                    <a href="#modes" class="text-gray-300 hover:text-yellow-400 transition-colors">Режимы</a>
-                    <a href="#stack" class="text-gray-300 hover:text-yellow-400 transition-colors">Технологии</a>
-                </div>
-                <div class="md:hidden">
-                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                </div>
-            </nav>
-        </header>
+        <!-- ARCHITECTURE -->
+        <section class="section-header">
+            <h2 class="sec-title">Kernel Architecture</h2>
+            <p class="sec-desc">Lightprint OS relies on three independent clusters working in unison. Designed for performance, secured by physics.</p>
+        </section>
 
-        <!-- Главный экран (Hero) -->
-        <main class="container mx-auto">
-            <section id="hero" class="flex flex-col items-center justify-center text-center py-24 md:py-32">
-                <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6">
-                    <span class="gold-gradient-text">Lightprint Engine</span>
-                </h1>
-                <p class="text-lg md:text-xl text-gray-300 max-w-3xl mb-10">
-                    Веб-приложение для передачи и приёма данных с использованием видимого света (VLC). Используйте камеру и экран вашего устройства для аутентификации и обмена информацией.
+        <div class="bento-grid">
+            <!-- Tile 1: Neural -->
+            <div class="tile tile-tall">
+                <div class="tile-num">01</div>
+                <h3 class="gold-text">Neural Engine</h3>
+                <p>We don't send photos. We send math.</p>
+                <p style="margin-top: 15px;">
+                    Using MobileNet v2 (Alpha 0.50), we vectorize facial features directly in the browser client. 
+                    A cosine similarity check is performed against a locally stored encrypted template.
                 </p>
-                <a href="#mockup" class="btn-gold font-semibold py-3 px-8 rounded-full text-lg shadow-lg">
-                    Попробовать Демо
-                </a>
-            </section>
-
-            <!-- Основные функции (Receiver/Transmitter) -->
-            <section id="features" class="py-20">
-                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
-                    Ключевой <span class="gold-gradient-text">Функционал</span>
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    
-                    <!-- Карточка 1: Receiver -->
-                    <div class="glass-effect glass-effect-hover p-8 flex flex-col items-center text-center">
-                        <div class="p-4 bg-gray-900 rounded-full mb-6 border border-yellow-500/30">
-                            <!-- Иконка Камеры -->
-                            <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.53 4H13.5a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4 gold-gradient-text">Приёмник (Receiver)</h3>
-                        <p class="text-gray-300">
-                            Использует камеру устройства (`getUserMedia`) для захвата световых сигналов. Анализирует мерцание, стабильный свет и QR-коды с цветовой модуляцией для приёма данных.
-                        </p>
-                    </div>
-
-                    <!-- Карточка 2: Transmitter -->
-                    <div class="glass-effect glass-effect-hover p-8 flex flex-col items-center text-center">
-                        <div class="p-4 bg-gray-900 rounded-full mb-6 border border-yellow-500/30">
-                            <!-- Иконка Экрана/Света -->
-                            <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1.75-1L5.25 17l1-1.75L4.5 14l1.75-1L4.5 11l1.75-1L4.5 8l1.75-1L4.5 5l1.75-1L4.5 2l1.75 1L8 1.25l1.75 1.75L11.5 1.25l1.75 1.75L15 1.25l1.75 1.75L18.5 1.25l1.75 1.75L22 4.5l-1 1.75-1.75 1L21 8.5l-1.75 1-1.75 1.75L19.5 14l-1.75 1.75L19.5 17l-1.75 1.75L16 20.75l-1.75-1.75L12.5 20.75l-1.75-1.75L9 20l.75-3z"></path></svg>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4 gold-gradient-text">Передатчик (Transmitter)</h3>
-                        <p class="text-gray-300">
-                            Генерирует световые сигналы для передачи текста или файлов. Использует экран для мигания (Manchester) или отображения серии цветных QR-кодов.
-                        </p>
-                    </div>
+                <div class="code-terminal mono">
+<span class="k">const</span> CONFIG = {
+  AI: {
+    SIMILARITY_THRESHOLD: <span class="s">0.80</span>,
+    BACKEND: <span class="s">'WEBGL'</span>
+  }
+};
                 </div>
-            </section>
+            </div>
 
-            <!-- 
-                *** СЕКЦИЯ ***
-            -->
-            <section id="mockup" class="py-20">
-                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">
-                    Интерфейс <span class="gold-gradient-text">Приложения</span>
-                </h2>
+            <!-- Tile 2: WebGPU -->
+            <div class="tile tile-large">
+                <div class="tile-num">02</div>
+                <h3>WebGPU Accelerator</h3>
+                <p>
+                    Standard CPU processing is too slow for real-time signal decoding. 
+                    Lightprint injects raw WGSL shaders into the GPU pipeline to handle image contrast and normalization at 60 FPS.
+                </p>
+            </div>
 
-                <!-- .app-card - воссоздаем app-card из вашего CSS -->
-                <div class="max-w-md mx-auto bg-neutral-900 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
-                    
-                    <!-- .main-display - Экран камеры/передатчика -->
-                    <div classpro="main-display relative aspect-[4/3] bg-black flex items-center justify-center text-gray-600">
-                        <!-- Плейсхолдер камеры -->
-                        <svg class="w-16 h-16 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.53 4H13.5a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        
-                        <!-- 
-                        
-                          Желтая пунктирная рамка (roi-overlay)
-                        -->
+            <!-- Tile 3: Signal -->
+            <div class="tile tile-small">
+                <div class="tile-num">03</div>
+                <h3>DTW Sync</h3>
+                <p>Dynamic Time Warping compensates for camera lag, jitter, and dropped frames.</p>
+            </div>
+            
+            <!-- Tile 4: Air Gap -->
+            <div class="tile tile-small">
+                <div class="tile-num">04</div>
+                <h3>Zero Install</h3>
+                <p>No App Store. No APKs. Runs in Chrome/Safari via pure JS.</p>
+            </div>
+        </div>
 
-                        <!-- #transmitter (скрыт по умолчанию) - плейсхолдер для QR -->
-                        <!-- <div id="transmitter" class="absolute inset-0 bg-black p-4 flex items-center justify-center hidden">
-                            <img src="https://placehold.co/300x300/ffffff/000000?text=QR+CODE" alt="QR Code" class="w-full h-full object-contain" style="image-rendering: pixelated;">
-                        </div> -->
-                    </div>
+        <!-- SPECS & COMPARISON -->
+        <section class="section-header">
+            <h2 class="sec-title">Protocol Superiority</h2>
+            <p class="sec-desc">Why we killed radio frequency authentication.</p>
+        </section>
 
-                    <!-- .status-bar - Статус-бар -->
-                    <div class="status-bar px-4 py-3 border-t border-b border-gray-700 bg-neutral-800/50">
-                        <!-- #status - используем info-color из вашего CSS (желтый) -->
-                        <div id="status" class="text-center text-sm font-semibold text-yellow-400" data-type="info">
-                            STABILIZING...
-                        </div>
-                        <!-- .progress-bar - используем accent-color (синий) -->
-                        <div class="progress-bar w-full bg-gray-700 rounded-full h-1.5 mt-2">
-                            <div id="progressFill" class="bg-blue-600 h-1.5 rounded-full" style="width: 45%;"></div>
-                        </div>
-                    </div>
+        <table class="comparison mono">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Bluetooth LE</th>
+                    <th>NFC</th>
+                    <th style="color: #fff;">Lightprint</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Attack Vector</td>
+                    <td>Remote Sniffing (10m+)</td>
+                    <td>Skimming (< 10cm)</td>
+                    <td style="color: var(--gold-flat);">Line of Sight Only</td>
+                </tr>
+                <tr>
+                    <td>Installation</td>
+                    <td>Requires App Pairing</td>
+                    <td>Hardware Dependent</td>
+                    <td style="color: var(--gold-flat);">Browser Native</td>
+                </tr>
+                <tr>
+                    <td>Speed</td>
+                    <td>Slow Handshake (~3s)</td>
+                    <td>Instant</td>
+                    <td style="color: var(--gold-flat);">~300ms (AI + Signal)</td>
+                </tr>
+                <tr>
+                    <td>Privacy</td>
+                    <td>MAC Address Leak</td>
+                    <td>Device ID Leak</td>
+                    <td style="color: var(--gold-flat);">Ephemeral Optical</td>
+                </tr>
+            </tbody>
+        </table>
 
-                    <!-- .controls - Панель управления -->
-                    <div class="controls p-4 flex flex-col gap-4">
-                        <!-- Роль -->
-                        <div class="control-group flex items-center gap-3">
-                            <label class="font-medium text-gray-400 w-20">Роль:</label>
-                            <select class="flex-1 bg-neutral-950 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none">
-                                <option>Receiver</option>
-                                <option>Transmitter</option>
-                            </select>
-                        </div>
-                        <!-- Режим -->
-                        <div class="control-group flex items-center gap-3">
-                            <label class="font-medium text-gray-400 w-20">Режим:</label>
-                            <select class="flex-1 bg-neutral-950 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none">
-                                <option>Flicker (Auth)</option>
-                                <option>Stable (ML)</option>
-                                <option>Data (Manchester)</option>
-                                <option>Data (QR)</option>
-                            </select>
-                        </div>
-                        
-                        <!-- .button-group - Кнопки -->
-                        <div class="button-group grid grid-cols-2 gap-3 pt-2">
-                            <!-- .btn-secondary -->
-                            <button class="btn btn-secondary bg-gray-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-gray-500 transition-colors">
-                                Stop
-                            </button>
-                            <!-- .btn (primary) - используем accent-color (синий) -->
-                            <button class="btn bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                                Start Receiver
-                            </button>
-                        </div>
-                    </div>
+        <!-- DEEP DIVE (CODE) -->
+        <section class="section-header">
+            <h2 class="sec-title">The Logic</h2>
+            <p class="sec-desc">Inside the worker thread.</p>
+        </section>
 
-                    <!-- #result-display - Плейсхолдер для результатов -->
-                    <div id="result-display" class="p-4 border-t border-gray-700">
-                        <p class="text-sm text-center text-gray-500">Ожидание результата...</p>
-                        <!-- Пример успешного результата (скрыт) -->
-                        <!-- <a href="#" class="block w-full text-center py-2.5 px-4 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors">
-                            Download result.zip
-                        </a> -->
-                    </div>
-
-                </div>
-            </section>
-            <!-- *** КОНЕЦ СЕКЦИИ *** -->
-
-
-            <!-- Режимы Работы (Modes) -->
-            <section id="modes" class="py-20">
-                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
-                    Поддерживаемые <span class="gold-gradient-text">Режимы</span>
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    
-                    <div class="glass-effect glass-effect-hover p-6 text-center">
-                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Flicker (Мерцание)</h3>
-                        <p class="text-gray-300 text-sm">Аутентификация по шаблону мерцания. Сравнение сигналов через DTW и кросс-корреляцию.</p>
-                    </div>
-
-                    <div class="glass-effect glass-effect-hover p-6 text-center">
-                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Stable (Стабильный)</h3>
-                        <p class="text-gray-300 text-sm">Распознавание объектов (стабильный источник света) с использованием MobileNet (TF.js) для извлечения признаков.</p>
-</div>
-
-                    <div class="glass-effect glass-effect-hover p-6 text-center">
-                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Data (Manchester)</h3>
-                        <p class="text-gray-300 text-sm">Передача данных с помощью Manchester-кодирования. Использует CRC8 для проверки целостности данных.</p>
-                    </div>
-
-                    <div class="glass-effect glass-effect-hover p-6 text-center">
-                        <h3 class="text-xl font-bold mb-3 gold-gradient-text">Data QR (Цветной QR)</h3>
-                        <p class="text-gray-300 text-sm">Передача файлов/текста через QR с цветовой модуляцией (8 цветов, 3 бита на зону) и AES-шифрованием.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Технологический Стек -->
-            <section id="stack" class="py-20 text-center">
-                <h2 class="text-3xl md:text-4xl font-bold mb-10">
-                    Технологический <span class="gold-gradient-text">Стек</span>
-                </h2>
-                <div class="max-w-4xl mx-auto">
-                    <span class="tech-pill">TensorFlow.js</span>
-                    <span class="tech-pill">MobileNet</span>
-                    <span class="tech-pill">Web Workers</span>
-                    <span class="tech-pill">CryptoJS (AES)</span>
-                    <span class="tech-pill">jsQR</span>
-                    <span class="tech-pill">qrcode</span>
-                    <span class="tech-pill">MediaDevices API</span>
-                    <span class="tech-pill">Canvas API</span>
-                    <span class="tech-pill">DTW</span>
-                    <span classn class="tech-pill">Manchester Coding</span>
-                    <span class="tech-pill">CRC8</span>
-                    <span class="tech-pill">IIFE</span>
-                </div>
-            </section>
-        </main>
-
-        <!-- Подвал -->
-        <footer class="container mx-auto text-center py-8 mt-16 border-t border-gray-800/50">
-            <p class="text-gray-500">&copy; 2025 Lightprint. Все права защищены.</p>
-        </footer>
+        <div class="code-terminal mono" style="border-color: var(--glass-border); background: rgba(0,0,0,0.5);">
+<span class="c">// Worker Thread: Compute Signal Match</span>
+self.onmessage = <span class="k">function</span>(e) {
+    <span class="k">const</span> { type, payload } = e.data;
+    
+    <span class="k">if</span> (type === <span class="s">'COMPUTE_SIGNAL_MATCH'</span>) {
+        <span class="k">let</span> minDist = Infinity;
+        <span class="k">const</span> target = MathLib.normalize(payload.signal);
+        
+        <span class="c">// Dynamic Time Warping for lag compensation</span>
+        <span class="k">for</span> (<span class="k">const</span> t of payload.templates) {
+            <span class="k">const</span> dist = MathLib.dtw(target, t.data);
+            <span class="k">if</span> (dist < minDist) minDist = dist;
+        }
+        <span class="k">return</span> minDist; <span class="c">// Threshold < 15.0</span>
+    }
+};
+        </div>
 
     </div>
+
+    <footer>
+        <div class="brand" style="font-size: 2rem; margin-bottom: 20px;">LIGHTPRINT</div>
+        <p class="mono" style="color: var(--gold-dim);">OFFICIAL PROTOCOL DOCUMENTATION</p>
+        
+        <a href="#" class="btn-primary">Download Whitepaper</a>
+        
+        <div style="margin-top: 100px; opacity: 0.3; font-size: 0.8rem;">
+            &copy; 2025 LIGHTPRINT OS.
+        </div>
+    </footer>
+
 </body>
-</html>
+                        </html>
